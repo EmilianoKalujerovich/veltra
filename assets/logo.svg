@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 250 620 580">
+  <defs>
+    <mask id="v-cut" maskUnits="userSpaceOnUse" x="200" y="250" width="620" height="580">
+      <rect x="200" y="250" width="620" height="580" fill="#fff"/>
+      <path d="M222 296L427 375M800 296L597 375" stroke="#000" stroke-width="14"/>
+      <circle cx="427" cy="375" r="36" fill="#000"/>
+      <circle cx="597" cy="375" r="36" fill="#000"/>
+    </mask>
+  </defs>
+  <path d="M222 296H414L512 680L600 296H800L560 790H465Z" fill="#fff" mask="url(#v-cut)"/>
+  <path d="M427 375L512 450L597 375M512 450V520" stroke="#fff" stroke-width="13" fill="none" stroke-linejoin="round"/>
+  <circle cx="427" cy="375" r="21" fill="#fff"/>
+  <circle cx="597" cy="375" r="21" fill="#fff"/>
+  <circle cx="512" cy="532" r="27" fill="#22d3ee"/>
+</svg>
