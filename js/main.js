@@ -7,28 +7,57 @@
   const onScrollHdr = () => hdr.classList.toggle('scrolled', scrollY > 20);
   addEventListener('scroll', onScrollHdr, {passive:true}); onScrollHdr();
 
-  // Máquina de escribir
-  const words = ['Automatización','Inteligencia','Eficiencia','Tiempo libre'];
+  const i18n = window.veltraI18n;
+
+  // Menú mobile
+  const burger = document.getElementById('burger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  function setMenu(open){
+    burger.setAttribute('aria-expanded', open);
+    burger.setAttribute('aria-label', i18n.t(open ? 'nav.close' : 'nav.menu'));
+    hdr.classList.toggle('menu-open', open);
+    if (open) mobileMenu.hidden = false;
+    requestAnimationFrame(() => mobileMenu.classList.toggle('open', open));
+    if (!open) setTimeout(() => { if (!hdr.classList.contains('menu-open')) mobileMenu.hidden = true; }, 250);
+  }
+  burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
+  mobileMenu.addEventListener('click', e => { if (e.target.closest('a, button')) setMenu(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && hdr.classList.contains('menu-open')) setMenu(false); });
+  addEventListener('resize', () => { if (innerWidth > 820 && hdr.classList.contains('menu-open')) setMenu(false); });
+
+  // Máquina de escribir (las palabras cambian con el idioma)
   const typeEl = document.getElementById('type');
+  let words = i18n.t('hero.words'), w = 0, i = words[0].length, del = false;
+  typeEl.textContent = words[0];
   if (!reduce) {
-    let w = 0, i = words[0].length, del = false;
     (function step(){
-      const word = words[w];
+      const word = words[w % words.length];
       if (!del) {
         i++;
         if (i > word.length) { del = true; return setTimeout(step, 2200); }
       } else {
         i--;
-        if (i === 0) { del = false; w = (w + 1) % words.length; return setTimeout(step, 300); }
+        if (i <= 0) { del = false; w = (w + 1) % words.length; return setTimeout(step, 300); }
       }
-      typeEl.textContent = words[w].slice(0, i);
+      typeEl.textContent = words[w % words.length].slice(0, i);
       setTimeout(step, del ? 45 : 85);
     })();
   }
 
-  // Marquee: duplicar contenido para loop infinito
+  // Marquee: se arma desde el diccionario y se duplica para el loop infinito
   const track = document.getElementById('track');
-  if (!reduce) track.innerHTML += track.innerHTML;
+  function renderMarquee(){
+    const html = i18n.t('marquee.items').map(s => `<span>${s}</span>`).join('');
+    track.innerHTML = reduce ? html : html + html;
+  }
+
+  i18n.onChange(() => {
+    words = i18n.t('hero.words'); w = 0; i = words[0].length; del = false;
+    typeEl.textContent = words[0];
+    renderMarquee();
+    setMenu(false);
+  });
+  i18n.apply();
 
   // Spotlight de tarjetas
   const cards = document.getElementById('cards');
@@ -211,7 +240,6 @@
     {name:'Tu flujo, automatizado', pos:flow(), flow:true}
   ];
   SHAPES[1].pos = wordmark();
-  const LABELS = ['Veltra', 'Nuestro nombre', 'Tu flujo, automatizado'];
   if (document.fonts && document.fonts.load) {
     document.fonts.load('800 128px Inter').then(() => { SHAPES[1].pos = wordmark(); if (shapeIdx === 1) target = SHAPES[1].pos; });
   }
@@ -270,7 +298,7 @@
   const dotBtns = [...document.getElementById('shapeDots').children];
   function setShape(i, t){
     shapeIdx = i; if (mode === 'hero') target = SHAPES[i].flow ? flowBuf : SHAPES[i].pos;
-    label.innerHTML = `0${i + 1} — <b>${LABELS[i]}</b>`;
+    label.innerHTML = `0${i + 1} — <b>${i18n.t('shape.' + i)}</b>`;
     dotBtns.forEach((d, k) => d.classList.toggle('on', k === i));
     lastSwitch = t;
   }
@@ -305,14 +333,18 @@
   let gx = 0, gy = 0, gs = 1, opacity = 0, placed = false, labelOp = 0;
   const pt = {x:0, y:0}, v3 = new THREE.Vector3();
 
-  const NODE_NAMES = {wa:'WhatsApp', mail:'Email', ia:'IA', crm:'CRM', cal:'Calendario', fac:'Facturación', sh:'Google Sheets'};
   const flowLabels = document.getElementById('flowLabels');
   const labelEls = Object.entries(NODES).map(([id, n]) => {
-    const el = document.createElement('span'); el.textContent = NODE_NAMES[id];
+    const el = document.createElement('span'); el.textContent = i18n.t('flow.' + id);
     if (id === 'ia') el.className = 'ia';
     flowLabels.appendChild(el);
-    return {el, n};
+    return {el, n, id};
   });
+  i18n.onChange(() => {
+    labelEls.forEach(({el, id}) => { el.textContent = i18n.t('flow.' + id); });
+    label.innerHTML = `0${shapeIdx + 1} — <b>${i18n.t('shape.' + shapeIdx)}</b>`;
+  });
+  label.innerHTML = `01 — <b>${i18n.t('shape.0')}</b>`;
 
   function frame(){
     requestAnimationFrame(frame);
